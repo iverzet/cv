@@ -5,7 +5,12 @@ foreach (array_keys(CV_LANGUAGES) as $language) $translations[$language] = cvLab
 $jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE;
 ?>
 <main class="wrap editor" id="editor" data-paid="<?= $paid ? '1' : '0' ?>" data-csrf="<?= e($csrf) ?>">
-<h1>Creează CV-ul</h1>
+<a class="back-link" href="/cv/">← Prima pagină</a>
+<div class="workspace-title">
+  <div class="wizard-title"><h1>CV-ul tău, pas cu pas.</h1><p>Completează documentul și urmărește-l pe măsură ce prinde formă.</p></div>
+  <div class="photo-title"><p class="eyebrow">O PRIMĂ IMPRESIE BUNĂ</p><h1>Tu, în cea mai bună lumină.</h1><p>O fotografie simplă. Un detaliu care face documentul al tău.</p></div>
+  <span class="conversation-avatar" aria-hidden="true">✱</span>
+</div>
 <?php if ($message): ?><p class="notice" role="status"><?= e($message) ?></p><?php endif; ?>
 <script type="application/json" id="initial"><?= json_encode($cv, $jsonFlags) ?></script>
 <script type="application/json" id="cv-labels"><?= json_encode($translations, $jsonFlags) ?></script>
@@ -19,11 +24,7 @@ $jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_
 
     <section data-step="format">
       <h2 tabindex="-1">Alege formatul CV-ului</h2>
-      <div class="format-options">
-        <?php foreach (CV_FORMATS as $id => [$title, $description]): ?>
-          <label class="format-option"><input type="radio" name="format" value="<?= e($id) ?>"><span class="format-sample example-<?= e($id) ?>" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span><strong><?= e($title) ?></strong><small><?= e($description) ?></small></span></label>
-        <?php endforeach; ?>
-      </div>
+      <?= html('format-options', ['selectedFormat'=>$cv['format']]) ?>
     </section>
 
     <section data-step="language" hidden>
@@ -37,36 +38,40 @@ $jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_
     </section>
 
     <section data-step="photo" hidden>
-      <h2 tabindex="-1">Fotografie</h2>
+      <h2 tabindex="-1" class="sr-only">Fotografie</h2>
       <input type="file" id="selfie" accept="image/*" capture="user" hidden>
       <input type="file" id="photo" accept="image/*" hidden>
-      <div class="photo-start" id="photo-start">
-        <div class="photo-placeholder" id="photo-placeholder" aria-hidden="true"><span>4:5</span></div>
-        <div class="photo-start-copy">
-          <p class="muted">Încarcă o poză, fă un selfie sau continuă fără fotografie.</p>
-          <div class="actions"><button type="button" class="secondary" data-photo="photo">Încarcă o poză</button><button type="button" class="secondary" data-photo="selfie">Fă un selfie</button></div>
+      <div class="photo-stage photo-empty" id="photo-start">
+        <div id="photo-placeholder">
+          <span class="photo-symbol" aria-hidden="true">▧</span>
+          <h3>Un chip. Povestea ta.</h3>
+          <p>Alege o fotografie sau încearcă portretul fictiv.</p>
+          <button type="button" class="button" data-example-photo>Încearcă o poză de exemplu →</button>
         </div>
-      </div>
-      <div class="photo-selection" id="photo-actions" hidden>
-        <img id="selected-photo" alt="Fotografia aleasă pentru CV">
-        <div><p>Fotografia pentru CV</p><div class="actions"><button type="button" class="secondary" id="crop-toggle">Editează încadrarea</button><button type="button" class="secondary" id="remove-photo">Elimină</button></div></div>
+        <div class="photo-selection" id="photo-actions" hidden>
+          <img id="selected-photo" alt="Fotografia confirmată pentru CV">
+          <div><button type="button" class="secondary" id="crop-toggle">Editează încadrarea</button><button type="button" class="text-button" id="remove-photo">Elimină</button></div>
+        </div>
       </div>
       <div id="crop" hidden>
         <div class="photo-stage">
+          <canvas id="crop-surround" aria-hidden="true"></canvas>
           <div class="crop-window">
             <canvas id="crop-preview" width="320" height="400" tabindex="0" aria-label="Încadrarea fotografiei" aria-describedby="crop-help"></canvas>
             <div class="crop-grid" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           </div>
         </div>
-        <p class="muted crop-help" id="crop-help">Trage fotografia pentru a o poziționa. Poți folosi și tastele săgeți.</p>
+
         <div class="crop-tools">
           <label for="crop-zoom">Zoom <output id="crop-zoom-value" for="crop-zoom">100%</output><input id="crop-zoom" type="range" min="100" max="300" step="1" value="100"></label>
           <div class="actions"><button type="button" class="secondary" data-rotate="-1" aria-label="Rotește la stânga">↶</button><button type="button" class="secondary" data-rotate="1" aria-label="Rotește la dreapta">↷</button><button type="button" class="secondary" id="crop-reset">Resetează</button></div>
         </div>
-        <div class="actions crop-actions"><button type="button" class="secondary" id="crop-cancel">Anulează</button><button type="button" class="button" id="crop-save">Aplică fotografia</button></div>
+        <p class="muted crop-help" id="crop-help">Trage fotografia pentru a o poziționa sau folosește tastele săgeți.</p>
+        <div class="actions crop-actions"><button type="button" class="secondary" id="crop-cancel">Anulează</button><button type="button" class="button" id="crop-save">Confirmă fotografia ✓</button></div>
       </div>
       <video id="selfie-video" autoplay muted playsinline hidden></video>
       <div class="actions" id="camera-actions" hidden><button type="button" class="secondary" id="camera-cancel">Închide camera</button><button type="button" class="button" id="take-selfie">Capturează fotografia</button></div>
+      <div class="actions photo-sources"><button type="button" class="secondary" data-photo="photo">Încarcă o fotografie</button><button type="button" class="secondary" data-photo="selfie">Fă un selfie</button><button type="button" class="text-button" id="replace-example" data-example-photo hidden>Poză de exemplu</button></div>
     </section>
 
     <section data-step="contact" hidden>
@@ -130,24 +135,27 @@ $jsonFlags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_
   <aside class="preview" id="cv-preview" tabindex="-1"><div class="preview-head"><h2>Previzualizare</h2><span>A4</span></div><div class="sheet" id="preview"><?= resume($cv) ?></div></aside>
 </div>
 <dialog id="work-interview" class="interview" aria-labelledby="interview-question">
-  <div class="interview-top">
-    <p id="interview-count" class="muted"></p>
-    <button type="button" class="secondary" id="interview-close">Închide</button>
-  </div>
-  <h2 id="interview-question" tabindex="-1">Unde ai lucrat?</h2>
-  <div id="interview-prompt">
-    <p class="muted" id="interview-example"></p>
-    <div class="actions">
-      <button type="button" class="secondary" id="interview-listen">Ascultă întrebarea</button>
-      <button type="button" class="secondary" id="interview-speak">Răspunde la microfon</button>
+  <header class="interview-masthead"><span class="brand"><span class="brand-mark" aria-hidden="true">✱</span> CV-ul<span>.ro</span></span><button type="button" class="secondary" id="interview-close">← Înapoi la CV</button></header>
+  <div class="interview-shell">
+    <div class="interview-meta"><span>EXPERIENȚA TA · O CONVERSAȚIE</span><span id="interview-count"></span></div>
+    <div class="interview-progress" aria-hidden="true"><?php for ($i = 0; $i < 5; $i++): ?><span></span><?php endfor; ?></div>
+    <section class="interview-question">
+      <div class="conversation-avatar" id="interview-avatar" aria-hidden="true">✱</div>
+      <div class="question-line"><h2 id="interview-question" tabindex="-1">Unde ai lucrat?</h2>
+        <button type="button" class="secondary" id="interview-listen" aria-label="Ascultă întrebarea" title="Ascultă întrebarea">♬</button></div>
+      <p id="interview-example"></p>
+    </section>
+    <div id="interview-prompt">
+      <textarea id="interview-answer" rows="5" aria-label="Răspunsul tău" placeholder="Răspunsul tău, în cuvintele tale…"></textarea>
+      <div class="voice-row"><button type="button" class="button" id="interview-speak">Răspunde la microfon</button><span>Poți scrie sau folosi și microfonul tastaturii.</span></div>
+      <button type="button" class="text-button example-answer" id="interview-demo">↻ Încearcă un răspuns de exemplu</button>
     </div>
-    <label>Răspunsul tău<textarea id="interview-answer" rows="3"></textarea></label>
-  </div>
-  <dl class="interview-review" id="interview-review" hidden></dl>
-  <p id="interview-status" class="status" role="status"></p>
-  <div class="step-actions">
-    <button type="button" class="secondary" id="interview-back" hidden>Înapoi</button>
-    <button type="button" class="button" id="interview-next">Continuă</button>
+    <div class="interview-review" id="interview-review" hidden></div>
+    <p id="interview-status" class="status" role="status"></p>
+    <div class="step-actions interview-footer">
+      <button type="button" class="text-button" id="interview-back">← Înapoi</button>
+      <button type="button" class="button" id="interview-next">Continuă →</button>
+    </div>
   </div>
 </dialog>
 <dialog id="document-review" aria-labelledby="document-title">
