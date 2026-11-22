@@ -1,0 +1,34 @@
+.resume { color: #1e293b; background: #fff; font: 14px/1.48 Arial, sans-serif; padding: 32px; overflow-wrap: anywhere; }
+.cv-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; border-bottom:2px solid #175297; padding-bottom:16px; margin-bottom:20px; }
+.resume .cv-label { color:#175297; font-size:11px; font-weight:bold; letter-spacing:.14em; text-transform:uppercase; margin:0 0 6px; }
+.resume h1 { color:#12365d; font-size:32px; line-height:1.04; margin:0; }
+.resume .cv-role { color:#254e7b; font-size:16px; margin:7px 0 2px; }
+.resume .cv-contact { margin:4px 0 0; color:#475569; }
+.cv-photo { width:78px; height:98px; object-fit:cover; border-radius:6px; flex:none; }
+.resume section { margin:0 0 15px; }
+.resume h2 { color:#175297; font-size:15px; padding:0 0 4px; border-bottom:1px solid #dbe5ef; margin:0 0 7px; }
+.resume h3 { font-size:14px; margin:0; }
+.resume p { margin:0; white-space:pre-wrap; }
+.cv-entry { display:grid; grid-template-columns:100px 1fr; gap:10px; margin-bottom:9px; }
+.cv-date, .cv-org { color:#475569; }
+@page { size: A4; margin: 14mm; }
+@media print {
+  body { background:#fff !important; margin:0 !important; }
+  .print-now { display:none !important; }
+  .resume { padding:0; font-size:10.5pt; }
+  .cv-head,.cv-entry { break-inside:avoid-page; }
+  .resume h2 { break-after:avoid-page; }
+}
+
+.resume.format-modern { border-top: 8px solid #08745b; }
+.format-modern .cv-head { padding: 14px; background: #e6f3ee; border-bottom: 0; border-radius: 6px; }
+.format-modern .cv-head h1, .format-modern h2, .format-modern .cv-label, .format-modern .cv-role { color: #07533f; }
+.format-modern h2 { border-bottom-color: #b3d7ca; }
+.resume.format-classic { color: #222; font-family: Georgia, serif; }
+.format-classic .cv-head { border-bottom: 2px solid #383838; }
+.format-classic .cv-head h1, .format-classic h2, .format-classic .cv-label, .format-classic .cv-role { color: #222; }
+.format-classic h2 { border-bottom-color: #bcbcbc; }
+@media print {
+ .resume { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+ .resume.format-modern { padding:0 0 0; }
+}
