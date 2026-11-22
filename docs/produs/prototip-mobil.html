@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CV-ul.ro — prototip mobil</title>
+<style>html{color-scheme:light dark}body{margin:0}</style>
+</head>
+<body>
+<div class="viz-dotted-background" id="cv-mobile-demo">
+  <main class="cv-phone" aria-label="CV-ul.ro, prototip pentru telefon">
+    <header><strong>cv-ul<span>.ro</span></strong><button type="button" data-action="back" hidden>‹ Înapoi</button><small>Demo</small></header>
+    <div class="cv-screen" aria-live="polite"></div>
+  </main>
+</div>
+<style>
+  #cv-mobile-demo { padding: 12px; }
+  #cv-mobile-demo .cv-phone { --surface: light-dark(#fffefa,#191d1b); --ink: light-dark(#162a24,#f2f6f0); --sub: light-dark(#4e6058,#b9c6be); --line: light-dark(#d1ddd5,#44514a); --soft: light-dark(#e8f2eb,#293d32); --alt: light-dark(#f6eee1,#342e28); --action: light-dark(#185540,#98dbb9); --on-action: light-dark(#fff,#112b20); box-sizing:border-box; max-width:420px; min-height:540px; margin:auto; border:1px solid var(--line); border-radius:26px; background:var(--surface); color:var(--ink); font: 16px/1.45 system-ui,sans-serif; overflow-wrap:anywhere; }
+  #cv-mobile-demo *, #cv-mobile-demo *::before { box-sizing:border-box; }
+  #cv-mobile-demo header { display:flex; gap:10px; align-items:center; padding:12px 18px; min-height:60px; border-bottom:1px solid var(--line); }
+  #cv-mobile-demo header strong { margin-right:auto; letter-spacing:-.04em; font-size:21px; }
+  #cv-mobile-demo header strong span { color:var(--action); }
+  #cv-mobile-demo small, #cv-mobile-demo .hint { color:var(--sub); }
+  #cv-mobile-demo .cv-screen { padding:24px 18px 22px; display:grid; gap:14px; }
+  #cv-mobile-demo h2,#cv-mobile-demo h3,#cv-mobile-demo p { margin:0; }
+  #cv-mobile-demo h2 { font-size:28px; line-height:1.12; letter-spacing:-.04em; }
+  #cv-mobile-demo h3 { font-size:17px; }
+  #cv-mobile-demo button,#cv-mobile-demo input,#cv-mobile-demo textarea,#cv-mobile-demo select { font:inherit; min-height:44px; border-radius:11px; padding:9px 11px; color:var(--ink); border:1px solid var(--line); background:var(--surface); }
+  #cv-mobile-demo button:focus-visible,#cv-mobile-demo input:focus-visible,#cv-mobile-demo textarea:focus-visible,#cv-mobile-demo select:focus-visible { outline:2px solid var(--action); outline-offset:2px; }
+  #cv-mobile-demo .primary { background:var(--action); color:var(--on-action); border-color:var(--action); font-weight:650; }
+  #cv-mobile-demo button[disabled] { opacity:.5; }
+  #cv-mobile-demo .routes { display:grid; gap:12px; }
+  #cv-mobile-demo .route { min-height:123px; display:grid; gap:5px; text-align:left; align-content:center; padding:15px; background:var(--soft); }
+  #cv-mobile-demo .route:last-child { background:var(--alt); }
+  #cv-mobile-demo .route strong { font-size:20px; }
+  #cv-mobile-demo .panel { display:grid; gap:9px; padding:12px; border:1px solid var(--line); border-radius:13px; min-width:0; }
+  #cv-mobile-demo .panel p { font-size:14px; }
+  #cv-mobile-demo .row { display:flex; flex-wrap:wrap; gap:8px; }
+  #cv-mobile-demo .row button { flex:1 1 auto; }
+  #cv-mobile-demo label { display:grid; gap:6px; font-size:14px; min-width:0; }
+  #cv-mobile-demo input,#cv-mobile-demo textarea,#cv-mobile-demo select { width:100%; font-size:16px; }
+  #cv-mobile-demo textarea { resize:vertical; min-height:90px; }
+  #cv-mobile-demo .status { color:var(--action); font-weight:650; }
+  #cv-mobile-demo .ghost { background:transparent; border-color:transparent; }
+  #cv-mobile-demo .line { border-top:1px solid var(--line); padding-top:7px; }
+  #cv-mobile-demo [hidden] { display:none!important; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('cv-mobile-demo');
+  const view = root.querySelector('.cv-screen');
+  const back = root.querySelector('[data-action=back]');
+  const original = 'Făceam programul pentru 12 colegi și urmăream recepția mărfii.';
+  const proposal = 'Am planificat turele unei echipe de 12 colegi și am urmărit recepția mărfii.';
+  const cv = { name: 'Ștefania Țăran', role: 'Coordonatoare operațiuni', work: '' };
+  const jobText = 'Coordonator depozit · Atelier Nord\nCerințe: planificarea turelor, coordonarea echipei, recepție marfă și experiență cu SAP.';
+  let screen = 'auth';
+  let history = [];
+  let mode = 'adapt';
+  let imported = false;
+  let source = '';
+  let offer = '';
+  let decision = '';
+  let edited = proposal;
+  let clarify = '';
+  let editing = false;
+  let question = false;
+  let payment = false;
+  let method = 'Descarcă PDF';
+  let language = 'Română';
+  const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const button = (name, action, style = '') => '<button type="button" class="' + style + '" data-action="' + action + '">' + name + '</button>';
+  const primary = (name, action) => button(name, action, 'primary');
+  const label = (name, field, value, area = false) => '<label>' + name + (area ?
+    '<textarea data-field="' + field + '">' + escape(value) + '</textarea>' :
+    '<input data-field="' + field + '" value="' + escape(value) + '">') + '</label>';
+  const title = (name, desc = '') => '<h2>' + name + '</h2>' + (desc ? '<p class="hint">' + desc + '</p>' : '');
+  const go = next => { history.push(screen); screen = next; render(); };
+  function render() {
+    back.hidden = history.length === 0;
+    if (screen === 'auth') view.innerHTML = title('Intră în CV-ul.ro', 'CV-urile și candidaturile tale, într-un singur loc.') +
+      primary('Continuă cu Google', 'google') + button('Continuă cu telefonul', 'phone') +
+      button('Folosește amprenta sau Face ID', 'passkey') + '<small>Biometria este disponibilă după ce activezi o cheie de acces pe dispozitiv.</small>';
+    if (screen === 'phone') view.innerHTML = title('Intră cu telefonul', 'În demo poți continua cu numărul fictiv.') +
+      '<label>Număr de telefon<input type="tel" autocomplete="tel" value="+40 700 000 123"></label>' + primary('Simulează trimiterea codului', 'otp');
+    if (screen === 'otp') view.innerHTML = title('Codul de verificare', 'Cod demo: 123456') +
+      '<label>Cod SMS<input inputmode="numeric" autocomplete="one-time-code" maxlength="6" data-field="otp"></label><p role="alert" hidden data-error>Introdu codul demo 123456.</p>' + primary('Verifică și intră', 'verify');
+    if (screen === 'home') view.innerHTML = title('Cu ce începem?') +
+      '<div class="routes"><button type="button" class="route" data-action="new"><strong>CV nou</strong><span>Construiește-l pas cu pas, prin întrebări sau în scris.</span></button><button type="button" class="route" data-action="adapt"><strong>Adaptează CV-ul pentru un job</strong><span>Folosește CV-ul tău și o captură sau textul anunțului.</span></button></div>' +
+      (payment ? button('Deschide ultimul CV', 'open-last') : '');
+    if (screen === 'new') view.innerHTML = title('Creează un CV nou') + label('Nume complet', 'name', cv.name) +
+      label('Titlu profesional', 'role', cv.role) + '<div class="row">' + primary('Răspunde la o întrebare', 'interview') + button('Completează în scris', 'manual') + '</div>';
+    if (screen === 'interview' || screen === 'manual') view.innerHTML = title(screen === 'interview' ? 'Ce făceai la ultimul loc de muncă?' : 'Adaugă experiența') +
+      label('Responsabilități și rezultate', 'work', cv.work || original, true) +
+      primary('Verifică CV-ul', 'save-new');
+    if (screen === 'import') view.innerHTML = title('Adaugă CV-ul și anunțul') +
+      '<section class="panel"><h3>CV-ul tău</h3><p>' + (imported ? '✓ CV-Stefania.pdf · exemplu încărcat' : 'În produs: PDF, Word sau un CV salvat.') + '</p>' + button(imported ? 'Schimbă CV-ul de exemplu' : 'Folosește CV-ul de exemplu', 'cv') + '</section>' +
+      '<section class="panel"><h3>Anunțul de angajare</h3><div class="row">' + button('Captură demo', 'image') + button('PDF demo', 'file') + button('Lipește text', 'text') + '</div>' +
+      (source ? '<p class="status">' + escape(source) + '</p>' + label('Verifică textul anunțului', 'offer', offer, true) : '') + '</section>' +
+      '<button type="button" class="primary" data-action="analyse"' + (imported && offer.trim() ? '' : ' disabled') + '>Analizează gratuit</button>';
+    if (screen === 'review') view.innerHTML = title('Coordonator depozit', 'Atelier Nord · verifică propunerile') +
+      '<section class="panel"><h3>Planificarea turelor</h3><p class="status">Susținută de CV</p><p>În CV: ' + original + '</p>' +
+      (editing ? label('Formularea propusă', 'edited', edited, true) : '<p class="line">Propunere: ' + escape(edited) + '</p>') +
+      (decision ? '<p class="status">' + (decision === 'yes' ? '✓ Schimbare acceptată' : 'Ai păstrat textul inițial') + '</p>' : '') +
+      '<div class="row">' + primary('Acceptă', 'accept') + button('Editează', 'edit') + button('Păstrează originalul', 'reject') + '</div></section>' +
+      '<section class="panel"><h3>Experiență cu SAP</h3><p class="hint">' + (clarify ? 'Răspuns salvat pentru verificare: ' + escape(clarify) : 'Nu apare în CV.') + '</p>' +
+      (question ? label('Ce program ai folosit pentru stocuri?', 'clarify', clarify) + button('Salvează răspunsul', 'save-clarify') : button('Clarifică', 'clarify')) + '</section>' +
+      primary('Vezi CV-ul pentru job', 'preview');
+    if (screen === 'preview') view.innerHTML = title('Verifică documentul') +
+      '<section class="panel"><h3>' + escape(cv.name) + '</h3><p>' + escape(mode === 'adapt' ? 'Coordonatoare operațiuni' : cv.role) + '</p><p class="line">' + escape(mode === 'adapt' ? (decision === 'yes' ? edited : original) : cv.work) + '</p></section>' +
+      '<label>Limba documentului<select data-field="language">' + ['Română','Engleză','Franceză','Italiană','Spaniolă','Germană'].map(name => '<option' + (name === language ? ' selected' : '') + '>' + name + '</option>').join('') + '</select></label>' +
+      '<p class="hint">' + (payment ? 'Export deblocat pentru acest CV.' : '5 lei, o singură plată pentru PDF, print și e-mail.') + '</p><div class="row">' +
+      primary('Descarcă PDF', 'pdf') + button('Printează', 'print') + button('Trimite prin e-mail', 'mail') + '</div>';
+    if (screen === 'pay') view.innerHTML = title('Deblochează exportul', '5 lei · plată unică pentru acest CV') +
+      '<p>PDF, print și e-mail</p>' + primary('Simulează plata de 5 lei', 'pay');
+    if (screen === 'done') view.innerHTML = title('Export deblocat', method + ' · simulare') +
+      button('Înapoi la document', 'export') + button('Mergi la început', 'home');
+  }
+  root.addEventListener('input', event => {
+    const field = event.target.dataset.field;
+    const value = event.target.value;
+    if (field === 'offer') { offer = value; view.querySelector('[data-action=analyse]').disabled = !imported || !offer.trim(); }
+    if (field === 'edited') edited = value;
+    if (field === 'clarify') clarify = value;
+    if (field === 'language') language = value;
+    if (['name','role','work'].includes(field)) cv[field] = value;
+  });
+  root.addEventListener('click', event => {
+    const action = event.target.closest('button')?.dataset.action;
+    switch (action) {
+      case 'back': screen = history.pop() || 'auth'; render(); break;
+      case 'google': case 'passkey': go('home'); break;
+      case 'phone': go('phone'); break;
+      case 'otp': go('otp'); break;
+      case 'verify':
+        if (view.querySelector('[data-field=otp]').value === '123456') go('home');
+        else view.querySelector('[data-error]').hidden = false;
+        break;
+      case 'home': history = ['auth']; screen = 'home'; render(); break;
+      case 'new': mode = 'new'; payment = false; go('new'); break;
+      case 'adapt': mode = 'adapt'; payment = false; go('import'); break;
+      case 'interview': case 'manual': go(action); break;
+      case 'save-new': cv.work = view.querySelector('[data-field=work]').value; go('preview'); break;
+      case 'cv': imported = true; render(); break;
+      case 'image': case 'file': case 'text':
+        source = {image:'Text extras din captura fictivă',file:'Text extras din PDF-ul fictiv',text:'Text introdus manual'}[action];
+        offer = action === 'text' ? offer : jobText;
+        render();
+        view.querySelector('[data-field=offer]').focus();
+        break;
+      case 'analyse': go('review'); break;
+      case 'edit': editing = true; render(); view.querySelector('[data-field=edited]').focus(); break;
+      case 'accept': case 'reject': decision = action === 'accept' ? 'yes' : 'no'; editing = false; render(); break;
+      case 'clarify': question = true; render(); view.querySelector('[data-field=clarify]').focus(); break;
+      case 'save-clarify': question = false; render(); break;
+      case 'open-last': case 'preview': case 'export': go('preview'); break;
+      case 'pdf': case 'print': case 'mail':
+        method = {pdf:'Descarcă PDF',print:'Printează',mail:'Trimite prin e-mail'}[action];
+        go(payment ? 'done' : 'pay');
+        break;
+      case 'pay': payment = true; screen = 'done'; render(); break;
+    }
+  });
+  render();
+})();
+</script>
+
+</body></html>
