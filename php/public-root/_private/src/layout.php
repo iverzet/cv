@@ -6,15 +6,17 @@
 <title><?= e($title) ?></title>
 <?php if (isset($description)): ?><meta name="description" content="<?= e($description) ?>"><?php endif; ?>
 <?php if (isset($canonical)): ?><link rel="canonical" href="<?= e($canonical) ?>"><?php endif; ?>
-<link rel="stylesheet" href="/cv/assets/site.css?v=4">
-<link rel="stylesheet" href="/cv/assets/resume.css?v=2">
-<script defer src="/cv/assets/editor.js?v=5"></script>
+<link rel="stylesheet" href="/cv/assets/fonts.css?v=1">
+<link rel="stylesheet" href="/cv/assets/site.css?v=5">
+<link rel="stylesheet" href="/cv/assets/resume.css?v=3">
+<script defer src="/cv/assets/editor.js?v=6"></script>
 </head>
 <body>
 <?php if (empty($bare)): ?>
 <header class="site-head"><div class="wrap top">
-  <a class="brand" href="/cv/" aria-label="CV-ul.ro, prima pagină"><span class="brand-mark">cv.</span> CV-ul<span>.ro</span></a>
-  <nav aria-label="Navigare principală"><a class="nav-link" href="/cv/model-cv-europass">Model de CV</a><a class="button small" href="/cv/editor">Deschide editorul</a></nav>
+  <a class="brand" href="/cv/" aria-label="CV-ul.ro, prima pagină"><span class="brand-mark" aria-hidden="true">✱</span> CV-ul<span>.ro</span></a>
+  <p class="header-note">Un pas înainte. În felul tău.</p>
+  <nav aria-label="Navigare principală"><a class="secondary small" href="/cv/editor">CV-ul meu ↗</a></nav>
 </div></header>
 <?php endif; ?>
 <?= $content ?>

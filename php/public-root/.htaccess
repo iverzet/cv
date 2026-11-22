@@ -3,7 +3,7 @@ DirectoryIndex index.php
 RewriteEngine On
 RewriteRule ^_private(?:/|$) - [F,L,NC]
 RewriteRule ^index\.php$ - [L]
-RewriteRule ^(?:assets/(?:editor\.js|document-ocr\.js|site\.css|resume\.css))$ - [L]
+RewriteRule ^(?:assets/(?:editor\.js|document-ocr\.js|site\.css|resume\.css|fonts\.css|cv-portrait\.png|fonts/(?:dm-sans|manrope|playfair-display)-(?:italic-)?latin(?:-ext)?\.woff2))$ - [L]
 RewriteRule ^assets/ocr/(?:tesseract\.min\.js|worker\.min\.js|tesseract-core-lstm\.wasm\.js|tesseract-core-lstm\.wasm|ron\.traineddata\.gz)$ - [L]
 RewriteRule ^ index.php [L]
 <IfModule mod_headers.c>

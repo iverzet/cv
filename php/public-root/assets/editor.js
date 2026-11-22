@@ -71,21 +71,25 @@ function initializeEditor() {
     cv.lang = record.language;
     const heading = element('header','cv-head');
     const intro = element('div');
-    intro.append(element('p','cv-label','Curriculum vitae'),element('h1','',record.name || translation.name));
+    if (record.format === 'europass') intro.append(element('p','cv-label','✦ europass'));
+    intro.append(element('h1','',record.name || translation.name));
     if (record.role) intro.append(element('p','cv-role',record.role));
-    const contact = [record.city,record.phone,record.email].filter(Boolean).join(' · ');
-    if (contact) intro.append(element('p','cv-contact',contact));
+    const contact = [record.email,record.phone,record.city].filter(Boolean).join('\n');
     heading.append(intro);
     const displayedPhoto = previewPhoto || record.photo;
     if (displayedPhoto) {
+      heading.classList.add('has-photo');
       const photo = element('img','cv-photo');
       photo.src = displayedPhoto;
       photo.alt = translation.photo;
       heading.append(photo);
     }
     cv.append(heading);
-    for (const key of ['summary','work','education','skills','languages','driving']) {
-      const value = record[key];
+    const columns = element('div','cv-columns');
+    const main = element('div','cv-main');
+    const aside = element('div','cv-aside');
+    for (const key of ['summary','work','education','contact','skills','languages','driving']) {
+      const value = key === 'contact' ? contact : record[key];
       const items = Array.isArray(value) ? value.filter(row => Object.values(row).some(Boolean)) : null;
       if (items ? !items.length : !value) continue;
       const section = element('section');
@@ -96,13 +100,16 @@ function initializeEditor() {
           const details = element('div');
           if (row.title) details.append(element('h3','',row.title));
           if (row.org) details.append(element('p','cv-org',row.org));
+          if (row.period) details.append(element('p','cv-date',row.period));
           if (row.details) details.append(element('p','',row.details));
-          entry.append(element('div','cv-date',row.period),details);
+          entry.append(details);
           section.append(entry);
         }
       } else section.append(element('p','',value));
-      cv.append(section);
+      (['summary','work','education'].includes(key) ? main : aside).append(section);
     }
+    columns.append(main,aside);
+    cv.append(columns);
     preview.replaceChildren(cv);
   }
 
@@ -309,6 +316,7 @@ function initializeEditor() {
     stream = null;
     video.srcObject = null;
     video.hidden = true;
+    renderPhoto();
     cameraActions.hidden = true;
   }
   window.addEventListener('pagehide',stopCamera);
@@ -317,8 +325,10 @@ function initializeEditor() {
   function renderPhoto() {
     const editing = !crop.hidden;
     photoActions.hidden = !record.photo || editing;
-    select('#photo-start').hidden = editing;
+    select('#photo-start').hidden = editing || !video.hidden;
+    select('#next').disabled = editing || !video.hidden;
     select('#photo-placeholder').hidden = !!record.photo;
+    select('#replace-example').hidden = !record.photo && !editing;
     if (record.photo) photoImage.src = record.photo;
     else photoImage.removeAttribute('src');
     if (panels[step].dataset.step === 'photo') select('#next').textContent = record.photo ? 'Continuă' : 'Continuă fără poză';
@@ -332,7 +342,7 @@ function initializeEditor() {
     return {scale, maxX: Math.max(0,(width * scale - 320) / 2), maxY: Math.max(0,(height * scale - 400) / 2)};
   }
 
-  function paintPhoto(canvas) {
+  function paintPhoto(canvas, ratio = canvas.width / 320) {
     const {scale,maxX,maxY} = photoGeometry();
     cropFrame.x = Math.max(-maxX, Math.min(maxX,cropFrame.x));
     cropFrame.y = Math.max(-maxY, Math.min(maxY,cropFrame.y));
@@ -340,8 +350,9 @@ function initializeEditor() {
     ctx.setTransform(1,0,0,1,0,0);
     ctx.fillStyle = '#fff';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.scale(canvas.width / 320,canvas.height / 400);
-    ctx.translate(160 + cropFrame.x,200 + cropFrame.y);
+    ctx.translate(canvas.width / 2,canvas.height / 2);
+    ctx.scale(ratio,ratio);
+    ctx.translate(cropFrame.x,cropFrame.y);
     ctx.rotate(cropFrame.angle * Math.PI / 2);
     const width = picture.naturalWidth * scale;
     const height = picture.naturalHeight * scale;
@@ -356,12 +367,19 @@ function initializeEditor() {
       raf = 0;
       if (crop.hidden) return;
       paintPhoto(cropCanvas);
+      const surround = select('#crop-surround');
+      const scale = Math.min(2, window.devicePixelRatio || 1);
+      surround.width = Math.round(surround.clientWidth * scale);
+      surround.height = Math.round(surround.clientHeight * scale);
+      paintPhoto(surround,cropCanvas.clientWidth * scale / 320);
       previewPhoto = cropCanvas.toDataURL('image/jpeg',0.78);
       const thumbnail = preview.querySelector('.cv-photo');
       if (thumbnail) thumbnail.src = previewPhoto;
       else draw();
     });
   }
+
+  new ResizeObserver(() => { if (!crop.hidden) refreshCrop(); }).observe(cropCanvas);
 
   function resetCrop() {
     Object.assign(cropFrame,{angle:0,zoom:1,x:0,y:0});
@@ -401,6 +419,13 @@ function initializeEditor() {
     openCrop(null);
   }
 
+  editor.querySelectorAll('[data-example-photo]').forEach(button => button.addEventListener('click', async () => {
+    stopCamera();
+    const request = ++photoRequest;
+    try { await loadPicture('/cv/assets/cv-portrait.png',request); }
+    catch { if (request === photoRequest) message('Portretul fictiv nu s-a încărcat.'); }
+  }));
+
   for (const id of ['photo','selfie']) {
     select('#' + id).addEventListener('change', async event => {
       const file = event.target.files[0];
@@ -435,6 +460,7 @@ function initializeEditor() {
       stream = camera;
       video.srcObject = stream;
       video.hidden = false;
+      renderPhoto();
       cameraActions.hidden = false;
       video.scrollIntoView({block:'nearest'});
     } catch {
@@ -570,15 +596,17 @@ function initializeEditor() {
   const interviewBack = select('#interview-back');
   const interviewNext = select('#interview-next');
   const questions = [
-    {field:'org',title:'Unde ai lucrat?',hint:'Spune numele firmei sau al organizației.',max:240,required:true},
-    {field:'title',title:'Ce post ai avut?',hint:'De exemplu, operator producție, șef de echipă sau voluntar.',max:240,required:true},
+    {field:'org',title:'Unde ai lucrat?',hint:'Poate fi o companie, un proiect sau un loc în care ai făcut voluntariat.',max:240,required:true},
+    {field:'title',title:'Ce post ai avut?',hint:'Cum se numea rolul tău? Spune-l în cuvintele tale.',max:240,required:true},
     {field:'period',title:'În ce perioadă ai lucrat acolo?',hint:'De exemplu, martie 2021 – iunie 2024 sau 2022 – prezent.',max:240},
     {field:'details',title:'Ce responsabilități aveai?',hint:'Povestește ce făceai de obicei. Poți enumera 2–3 lucruri.',max:1200},
     {field:'results',title:'Ce rezultat ai obținut?',hint:'Adaugă o realizare concretă dacă îți amintești una. Poți sări peste întrebare.',max:550},
   ];
   let answers = {};
   let currentQuestion = 0;
-  let returnToReview = false;
+  const demoAnswers = ['Studio Nord, București','Specialist marketing','Martie 2022 – prezent',
+    'Am coordonat campaniile de comunicare și am gestionat conținutul pentru rețelele sociale.',
+    'Am crescut comunitatea online cu 35% într-un an.'];
   let recognition = null;
   let reading = null;
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -599,6 +627,11 @@ function initializeEditor() {
     }
   }
 
+  function updateInterviewNext() {
+    const question = questions[currentQuestion];
+    interviewNext.disabled = Boolean(question?.required && !interviewAnswer.value.trim());
+  }
+
   function renderInterview() {
     stopReading();
     stopDictation();
@@ -606,35 +639,36 @@ function initializeEditor() {
     interviewStatus.textContent = '';
     interviewPrompt.hidden = !question;
     interviewReview.hidden = Boolean(question);
-    interviewBack.hidden = currentQuestion === 0;
+    interviewBack.disabled = currentQuestion === 0;
+    listen.hidden = !question || !window.speechSynthesis || !window.SpeechSynthesisUtterance;
+    select('#interview-avatar').textContent = question ? '✱' : '✓';
+    interview.querySelectorAll('.interview-progress span').forEach((bar,index) => bar.classList.toggle('done',index <= currentQuestion));
     if (question) {
       interviewQuestion.textContent = question.title;
-      interviewProgress.textContent = 'Întrebarea ' + (currentQuestion + 1) + ' din ' + questions.length;
+      interviewProgress.textContent = (currentQuestion + 1) + ' / ' + questions.length;
       select('#interview-example').textContent = question.hint;
       interviewAnswer.value = answers[question.field] || '';
       interviewAnswer.maxLength = question.max;
-      interviewNext.textContent = returnToReview ? 'Înapoi la verificare' : 'Continuă';
+      interviewNext.textContent = currentQuestion === questions.length - 1 ? 'Verifică răspunsurile →' : 'Continuă →';
     } else {
-      interviewQuestion.textContent = 'Verifică experiența înainte de a o adăuga';
-      interviewProgress.textContent = 'Verificare răspunsuri';
-      interviewNext.textContent = 'Adaugă în CV';
+      interviewQuestion.textContent = 'Sună ca tine?';
+      select('#interview-example').textContent = 'Verifică și corectează răspunsurile înainte să le adaugi în CV.';
+      interviewProgress.textContent = 'VERIFICARE';
+      interviewNext.textContent = 'Adaugă în CV →';
       interviewReview.replaceChildren();
-      questions.forEach(({field,title}, index) => {
-        const item = element('div','interview-item');
-        const value = element('dd','',answers[field]?.trim() || 'Fără răspuns');
-        const edit = element('button','secondary','Modifică');
-        edit.type = 'button';
-        edit.setAttribute('aria-label','Modifică răspunsul: ' + title);
-        edit.addEventListener('click', () => {
-          returnToReview = true;
-          currentQuestion = index;
-          renderInterview();
-        });
-        value.append(edit);
-        item.append(element('dt','',title),value);
+      questions.forEach(({field,title,max,required}) => {
+        const item = element('label','review-answer');
+        const input = element('textarea');
+        input.rows = max > 240 ? 3 : 2;
+        input.maxLength = max;
+        input.required = Boolean(required);
+        input.value = answers[field] || '';
+        input.addEventListener('input', () => { answers[field] = input.value; });
+        item.append(element('span','',title),input);
         interviewReview.append(item);
       });
     }
+    updateInterviewNext();
     interviewQuestion.focus();
   }
 
@@ -653,6 +687,14 @@ function initializeEditor() {
   interviewAnswer.addEventListener('input', () => {
     const question = questions[currentQuestion];
     if (question) answers[question.field] = interviewAnswer.value;
+    updateInterviewNext();
+  });
+  select('#interview-demo').addEventListener('click', () => {
+    stopDictation();
+    interviewAnswer.value = demoAnswers[currentQuestion];
+    answers[questions[currentQuestion].field] = interviewAnswer.value;
+    updateInterviewNext();
+    interviewStatus.textContent = 'Răspuns fictiv. Îl poți modifica.';
   });
   listen.addEventListener('click', () => {
     const question = questions[currentQuestion];
@@ -688,6 +730,7 @@ function initializeEditor() {
       const transcript = Array.from(event.results).map(result => result[0].transcript.trim()).filter(Boolean).join(' ');
       interviewAnswer.value = [interviewAnswer.value.trim(),transcript].filter(Boolean).join(' ').slice(0,question.max);
       answers[question.field] = interviewAnswer.value;
+      updateInterviewNext();
       interviewStatus.textContent = 'Verifică textul, apoi apasă Continuă.';
     };
     session.onerror = () => {
@@ -711,8 +754,7 @@ function initializeEditor() {
     }
   });
   interviewBack.addEventListener('click', () => {
-    if (returnToReview) { currentQuestion = questions.length; returnToReview = false; }
-    else currentQuestion = Math.max(0,currentQuestion - 1);
+    currentQuestion = Math.max(0,currentQuestion - 1);
     renderInterview();
   });
   interviewNext.addEventListener('click', () => {
@@ -725,17 +767,17 @@ function initializeEditor() {
         return;
       }
       answers[question.field] = answer;
-      currentQuestion = returnToReview ? questions.length : currentQuestion + 1;
-      returnToReview = false;
+      currentQuestion += 1;
       renderInterview();
       return;
     }
     if (record.work.length >= 15) { interviewStatus.textContent = 'Ai atins limita de 15 experiențe.'; return; }
-    const {org,title,period,details,results} = answers;
+    const invalid = [...interviewReview.querySelectorAll('textarea[required]')].find(input => !input.value.trim());
+    if (invalid) { interviewStatus.textContent = 'Completează locul de muncă și postul.'; invalid.focus(); return; }
+    const {org,title,period,details,results} = Object.fromEntries(Object.entries(answers).map(([key,value]) => [key,value.trim()]));
     add('work',{org,title,period,details:[details,results].filter(Boolean).join('\n')});
     answers = {};
     currentQuestion = 0;
-    returnToReview = false;
     interview.close();
     message('Experiența a fost adăugată în CV.');
   });
@@ -883,6 +925,16 @@ function initializeEditor() {
   const initialStep = paid && record.name.trim() ? panels.length - 1
     : Math.min(furthest, Math.max(0, Number(restored.step) || 0));
   showStep(initialStep,false);
+  const preferences = new URLSearchParams(location.search);
+  let selectedFromHome = false;
+  for (const key of ['format','language']) {
+    const choice = [...editor.querySelectorAll('input[name="' + key + '"]')].find(input => input.value === preferences.get(key));
+    if (!choice) continue;
+    choice.checked = true;
+    choice.dispatchEvent(new Event('change'));
+    selectedFromHome = true;
+  }
+  if (selectedFromHome) history.replaceState(history.state,'',location.pathname);
   if (paid && delivery === 'mail' && initialStep === panels.length - 1) mail.hidden = false;
   draw();
 }

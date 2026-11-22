@@ -1,34 +1,57 @@
-.resume { color: #1e293b; background: #fff; font: 14px/1.48 Arial, sans-serif; padding: 32px; overflow-wrap: anywhere; }
-.cv-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; border-bottom:2px solid #175297; padding-bottom:16px; margin-bottom:20px; }
-.resume .cv-label { color:#175297; font-size:11px; font-weight:bold; letter-spacing:.14em; text-transform:uppercase; margin:0 0 6px; }
-.resume h1 { color:#12365d; font-size:32px; line-height:1.04; margin:0; }
-.resume .cv-role { color:#254e7b; font-size:16px; margin:7px 0 2px; }
-.resume .cv-contact { margin:4px 0 0; color:#475569; }
-.cv-photo { width:78px; height:98px; object-fit:cover; border-radius:6px; flex:none; }
-.resume section { margin:0 0 15px; }
-.resume h2 { color:#175297; font-size:15px; padding:0 0 4px; border-bottom:1px solid #dbe5ef; margin:0 0 7px; }
-.resume h3 { font-size:14px; margin:0; }
-.resume p { margin:0; white-space:pre-wrap; }
-.cv-entry { display:grid; grid-template-columns:100px 1fr; gap:10px; margin-bottom:9px; }
-.cv-date, .cv-org { color:#475569; }
+.resume { color: #192522; background: white; font: 12px/1.6 "DM Sans", sans-serif; padding: 9% 8%; overflow-wrap: anywhere; }
+.cv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 2px solid #c93416; padding-bottom: 18px; margin-bottom: 22px; }
+.resume h1 { font: 600 28px/1.25 "Manrope", sans-serif; margin: 0; }
+.resume .cv-label { color: #26694e; font-size: 13px; font-weight: bold; margin-bottom: 9px; }
+.resume .cv-role { color: #c93416; font-size: 12px; margin-top: 5px; }
+.cv-photo { width: 65px; height: 81px; object-fit: cover; border-radius: 2px; flex: none; }
+.cv-columns { display: grid; grid-template-columns: minmax(0,30%) minmax(0,1fr); gap: 8%; }
+.cv-main { grid-column: 2; }
+.cv-aside { grid-column: 1; grid-row: 1; }
+.cv-columns:not(:has(.cv-aside section)) .cv-main { grid-column: 1/-1; }
+.resume section { margin-bottom: 19px; }
+.resume h2 { font: 700 9px/1.4 "Manrope", sans-serif; text-transform: uppercase; letter-spacing: .12em; border-bottom: 1px solid #d9d7cf; padding-bottom: 6px; margin: 0 0 8px; }
+.resume h3 { font: 600 12px/1.35 "Manrope", sans-serif; margin: 0; }
+.resume p { margin: 0; white-space: pre-wrap; }
+.cv-entry { margin-bottom: 13px; }
+.cv-entry p { margin-top: 3px; }
+.cv-date { color: #606c69; font-size: .87em; }
+.format-europass .cv-head { border: 0; align-items: end; padding-bottom: 3px; }
+.format-europass .cv-role, .format-europass h2 { color: #26694e; }
+.format-classic .cv-head { justify-content: center; text-align: center; padding: 13px; border: 1px solid #192522; }
+.format-classic h1 { font-family: "Playfair Display", Georgia, serif; }
+.format-classic .cv-role { color: inherit; }
+.format-classic .cv-columns { display: block; }
+.format-classic .cv-aside { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+
+.preview .resume { min-height: min(615px, calc((100vw - 44px) * 1.414)); }
+.mini-sheet .resume { min-height: 280px; font-size: 5px; }
+.mini-sheet .cv-head { padding-bottom: 7px; margin-bottom: 8px; gap: 4px; }
+.mini-sheet .resume h1 { font-size: 12px; }
+.mini-sheet .resume .cv-label, .mini-sheet .resume .cv-role { font-size: 5px; margin-block: 2px; }
+.mini-sheet .cv-photo { width: 27px; height: 34px; }
+.mini-sheet .resume h2 { font-size: 4px; padding-bottom: 2px; margin-bottom: 3px; }
+.mini-sheet .resume h3 { font-size: 5.5px; }
+.mini-sheet .resume section, .mini-sheet .cv-entry { margin-bottom: 5px; }
+.mini-sheet .cv-entry p { margin-top: 1px; }
+@media (max-width: 767px) {
+  .preview .resume { font-size: 10px; }
+  .photo-mode .resume { min-height: min(387px, calc((100vw - 44px) * 1.414)); }
+  .preview .resume h1 { font-size: 21px; }
+  .preview .cv-photo { width: 43px; height: 54px; }
+  .preview .resume h2 { font-size: 8px; letter-spacing: .06em; }
+  .preview .cv-columns { gap: 5%; }
+  .mini-sheet .resume { min-height: 132px; font-size: 2.7px; }
+  .mini-sheet .resume h1 { font-size: 5.5px; }
+  .mini-sheet .resume h2, .mini-sheet .resume .cv-label, .mini-sheet .resume .cv-role { font-size: 2.5px; }
+  .mini-sheet .resume h3 { font-size: 3px; }
+  .mini-sheet .cv-photo { width: 13px; height: 16px; }
+  .mini-sheet .cv-head { margin-bottom: 4px; padding-bottom: 4px; }
+}
 @page { size: A4; margin: 14mm; }
 @media print {
-  body { background:#fff !important; margin:0 !important; }
-  .print-now { display:none !important; }
-  .resume { padding:0; font-size:10.5pt; }
-  .cv-head,.cv-entry { break-inside:avoid-page; }
-  .resume h2 { break-after:avoid-page; }
-}
-
-.resume.format-modern { border-top: 8px solid #08745b; }
-.format-modern .cv-head { padding: 14px; background: #e6f3ee; border-bottom: 0; border-radius: 6px; }
-.format-modern .cv-head h1, .format-modern h2, .format-modern .cv-label, .format-modern .cv-role { color: #07533f; }
-.format-modern h2 { border-bottom-color: #b3d7ca; }
-.resume.format-classic { color: #222; font-family: Georgia, serif; }
-.format-classic .cv-head { border-bottom: 2px solid #383838; }
-.format-classic .cv-head h1, .format-classic h2, .format-classic .cv-label, .format-classic .cv-role { color: #222; }
-.format-classic h2 { border-bottom-color: #bcbcbc; }
-@media print {
- .resume { print-color-adjust:exact; -webkit-print-color-adjust:exact; }
- .resume.format-modern { padding:0 0 0; }
+  body { background: white !important; margin: 0 !important; }
+  .print-now { display: none !important; }
+  .resume { padding: 0; font-size: 10.5pt; print-color-adjust: exact; }
+  .cv-head, .cv-entry { break-inside: avoid-page; }
+  .resume h2 { break-after: avoid-page; }
 }

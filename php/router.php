@@ -5,7 +5,7 @@ if (!is_string($path) || ($path !== '/cv' && !str_starts_with($path, '/cv/'))) {
     http_response_code(404);
     exit;
 }
-if (preg_match('~^/cv/assets/(?:editor\.js|document-ocr\.js|site\.css|resume\.css|ocr/(?:tesseract\.min\.js|worker\.min\.js|tesseract-core-lstm\.wasm\.js|tesseract-core-lstm\.wasm|ron\.traineddata\.gz))$~D', $path)
+if (preg_match('~^/cv/assets/(?:editor\.js|document-ocr\.js|site\.css|resume\.css|fonts\.css|cv-portrait\.png|fonts/(?:dm-sans|manrope|playfair-display)-(?:italic-)?latin(?:-ext)?\.woff2|ocr/(?:tesseract\.min\.js|worker\.min\.js|tesseract-core-lstm\.wasm\.js|tesseract-core-lstm\.wasm|ron\.traineddata\.gz))$~D', $path)
     && is_file(__DIR__ . '/dist' . $path)) {
     if (str_ends_with($path, '/worker.min.js')) {
         header("Content-Security-Policy: default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'");

@@ -154,11 +154,11 @@ try {
             if (empty($_SESSION['paid'])) respond(['error'=>'Deblochează mai întâi exportul.'], 403);
             $recipient = clean($input['email'] ?? '');
             if (!filter_var($recipient, FILTER_VALIDATE_EMAIL)) throw new InvalidArgumentException('Verifică adresa de e-mail.');
+            if (demo()) respond(['message'=>'Trimiterea a fost simulată. Nu s-a expediat un e-mail.']);
             $from = env('CV_MAIL_FROM');
-            if (!demo() && !filter_var($from, FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Serviciul de e-mail necesită configurare.');
+            if (!filter_var($from, FILTER_VALIDATE_EMAIL)) throw new RuntimeException('Serviciul de e-mail necesită configurare.');
             session_write_close();
             throttle('mail', 5);
-            if (demo()) respond(['message'=>'Trimiterea a fost simulată. Nu s-a expediat un e-mail.']);
             $boundary = 'cv_' . bin2hex(random_bytes(16));
             $message = "--$boundary\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nGăsești CV-ul în atașament.\r\n"
                 . "--$boundary\r\nContent-Type: application/pdf; name=CV.pdf\r\nContent-Disposition: attachment; filename=CV.pdf\r\n"

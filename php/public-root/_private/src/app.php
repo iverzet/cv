@@ -54,6 +54,16 @@ function cvData(array $input): array {
     return $cv;
 }
 
+function sampleCv(): array {
+    return cvData([
+        'name'=>'Ioana Dobre', 'role'=>'Coordonator operațiuni', 'city'=>'Târgoviște', 'email'=>'ioana@example.com',
+        'summary'=>'Coordonez activitatea echipelor și urmăresc termenele de livrare. Îmi place să organizez procesele astfel încât echipa să știe ce are de făcut în fiecare zi.',
+        'work'=>[['period'=>'2022 – prezent','title'=>'Coordonator operațiuni','org'=>'Nord Logistic','details'=>'Planific turele echipei și urmăresc comenzile până la livrare.']],
+        'education'=>[['period'=>'2018 – 2021','title'=>'Licență în management','org'=>'Universitatea Valahia din Târgoviște']],
+        'languages'=>'Română — limbă maternă · Engleză — B2',
+    ]);
+}
+
 function searchKey(string $value): string {
     $value = strtolower(strtr($value, [
         'Ă'=>'a','Â'=>'a','Î'=>'i','Ș'=>'s','Ş'=>'s','Ț'=>'t','Ţ'=>'t',
